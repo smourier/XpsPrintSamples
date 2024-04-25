@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "XpsFilePrint": {
+      "commandName": "Project",
+      "hotReloadEnabled": false
+    }
+  }
+}
