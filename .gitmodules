@@ -1,0 +1,3 @@
+[submodule "DirectNAot"]
+	path = DirectNAot
+	url = https://github.com/smourier/DirectNAot
