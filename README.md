@@ -1,2 +1,2 @@
-# XpsPrintSample
-An AOT-friendly unattended Xps file printing sample
+# XpsPrintSamples
+AOT-friendly unattended Xps file printing samples
