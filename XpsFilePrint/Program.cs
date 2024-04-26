@@ -14,8 +14,9 @@ namespace XpsFilePrint
     {
         static void Main()
         {
-            //PrintJob("sample.xps", "Samsung C480W");
-            PrintJob("sample.xps", "Microsoft Print to PDF");
+            PrintJob("sample.xps", "Samsung C480W");
+            //PrintJob("sample.xps", "Microsoft XPS Document Writer");
+            //PrintJob("sample.xps", "Microsoft Print to PDF");
 
             GC.Collect();
             //GC.WaitForPendingFinalizers(); // this crashes .NET 8's ComObject (waiting for .NET 9...) see https://github.com/dotnet/runtime/issues/96901
@@ -29,7 +30,7 @@ namespace XpsFilePrint
             factory.CreateDocumentPackageTargetForPrintJob(
                 new Pwstr(printerName),
                 new Pwstr(Path.GetFileName(filePath)),
-                null!,
+                null!, // null, send to printer
                 null!,
                 out var packageTarget).ThrowOnError();
 
