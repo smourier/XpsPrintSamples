@@ -15,10 +15,17 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Button
-            x:Name="print"
+            x:Name="openButton"
             HorizontalAlignment="Center"
-            Click="print_Click">
+            Click="OnPrintClicked">
             Open XPS or PDF file to print...
+        </Button>
+        <Button
+            x:Name="cancelButton"
+            HorizontalAlignment="Center"
+            Click="OnCancelClicked"
+            Visibility="Collapsed">
+            Cancel
         </Button>
         <InfoBar
             x:Name="status"
@@ -26,6 +33,7 @@
             Grid.Row="1"
             HorizontalAlignment="Center"
             HorizontalContentAlignment="Stretch"
+            IsClosable="False"
             IsOpen="True" />
     </Grid>
 </Window>

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Windows.Graphics.Printing;
+using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Storage.Xps.Printing;
+using Windows.Win32.System.Com;
 using Windows.Win32.System.WinRT;
 
 namespace CustomPrintDocument.Model
@@ -11,6 +14,9 @@ namespace CustomPrintDocument.Model
     // and we can't use GeneratedComClass either...
     public abstract class BasePrintDocument : IPrintDocumentSource, IInspectable, IPrintDocumentPageSource, IPrintPreviewPageCollection
     {
+        public event EventHandler<PackageStatusUpdatedEventArgs> PackageStatusUpdated;
+        private IPrintDocumentPackageTarget _docPackageTarget;
+
         protected BasePrintDocument(string filePath)
         {
             ArgumentNullException.ThrowIfNull(filePath);
@@ -18,38 +24,82 @@ namespace CustomPrintDocument.Model
         }
 
         public string FilePath { get; }
+        public virtual uint? TotalPages { get; protected set; } // when/if known
 
-        unsafe void IInspectable.GetIids(out uint iidCount, Guid** iids)
-        {
-            iidCount = 0;
-            throw new NotImplementedException();
-        }
+        public virtual void Cancel() => _docPackageTarget?.Cancel();
 
-        unsafe HRESULT IInspectable.GetRuntimeClassName(HSTRING* className)
-        {
-            return HRESULT.E_NOTIMPL; // avoid throwing...
-        }
+        unsafe HRESULT IInspectable.GetRuntimeClassName(HSTRING* className) => HRESULT.E_NOTIMPL; // avoid throwing...
+        unsafe void IInspectable.GetTrustLevel(TrustLevel* trustLevel) => throw new NotImplementedException();
+        unsafe void IInspectable.GetIids(out uint iidCount, Guid** iids) { iidCount = 0; throw new NotImplementedException(); }
+        void IPrintDocumentPageSource.MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget) => MakeDocument(printTaskOptions, docPackageTarget);
+        IPrintPreviewPageCollection IPrintDocumentPageSource.GetPreviewPageCollection(IPrintDocumentPackageTarget docPackageTarget) => GetPreviewPageCollection(docPackageTarget);
+        void IPrintPreviewPageCollection.MakePage(int desiredJobPage, float width, float height) => MakePage(desiredJobPage, width, height);
+        void IPrintPreviewPageCollection.Paginate(int currentJobPage, nint printTaskOptions) => Paginate(currentJobPage, printTaskOptions);
 
-        unsafe void IInspectable.GetTrustLevel(TrustLevel* trustLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual IPrintPreviewPageCollection GetPreviewPageCollection(IPrintDocumentPackageTarget docPackageTarget)
+        // overridable methods
+        protected virtual IPrintPreviewPageCollection GetPreviewPageCollection(IPrintDocumentPackageTarget docPackageTarget)
         {
             return this;
         }
 
-        public virtual void MakePage(int desiredJobPage, float width, float height)
+        protected virtual void MakePage(int desiredJobPage, float width, float height)
         {
         }
 
-        public virtual void Paginate(int currentJobPage, nint printTaskOptions)
+        protected virtual void Paginate(int currentJobPage, nint printTaskOptions)
         {
         }
 
-        public abstract void MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget);
+        protected abstract Task MakeDocumentAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget);
+        protected virtual async void MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+        {
+            ArgumentNullException.ThrowIfNull(docPackageTarget);
+            _docPackageTarget = docPackageTarget;
 
+            IConnectionPoint connectionPoint = null;
+            uint cookie = 0;
+            if (docPackageTarget is IConnectionPointContainer container)
+            {
+                container.FindConnectionPoint(typeof(IPrintDocumentPackageStatusEvent).GUID, out connectionPoint);
+                if (connectionPoint != null)
+                {
+                    var sink = new StatusSink(this);
+                    connectionPoint.Advise(sink, out cookie);
+                }
+            }
+
+            try
+            {
+                await MakeDocumentAsync(printTaskOptions, docPackageTarget);
+            }
+            catch (COMException exception)
+            {
+                // eat cancelled error
+                if (exception.ErrorCode != PInvoke.HRESULT_FROM_WIN32(WIN32_ERROR.ERROR_PRINT_CANCELLED))
+                    throw;
+            }
+            finally
+            {
+                _docPackageTarget = null;
+                if (connectionPoint != null && cookie != 0)
+                {
+                    connectionPoint.Unadvise(cookie);
+                }
+            }
+        }
+
+        // status update
+        protected virtual void OnPackageStatusUpdated(object sender, PackageStatusUpdatedEventArgs e) => PackageStatusUpdated?.Invoke(sender, e);
+
+        private class StatusSink(BasePrintDocument document) : IPrintDocumentPackageStatusEvent
+        {
+            unsafe void IPrintDocumentPackageStatusEvent.PackageStatusUpdated(PrintDocumentPackageStatus* packageStatus)
+            {
+                document.OnPackageStatusUpdated(document, new PackageStatusUpdatedEventArgs(*packageStatus));
+            }
+        }
+
+        // tooling
         internal unsafe static PCWSTR ToPCWSTR(string text)
         {
             fixed (char* p = text)

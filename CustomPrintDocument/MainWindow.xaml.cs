@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using CustomPrintDocument.Model;
@@ -9,6 +10,10 @@ using Microsoft.UI.Xaml.Controls;
 using Windows.Graphics;
 using Windows.Graphics.Printing;
 using Windows.Storage.Pickers;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Storage.Xps.Printing;
+using Windows.Win32.UI.WindowsAndMessaging;
 using WinRT;
 
 namespace CustomPrintDocument
@@ -21,6 +26,11 @@ namespace CustomPrintDocument
         public MainWindow()
         {
             InitializeComponent();
+
+            // set app icon
+            var exeHandle = PInvoke.GetModuleHandle(Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName));
+            var appIcon = PInvoke.LoadImage(new HINSTANCE(exeHandle.DangerousGetHandle()), PInvoke.IDI_APPLICATION, GDI_IMAGE_TYPE.IMAGE_ICON, 16, 16, 0);
+            AppWindow.SetIcon(Win32Interop.GetIconIdFromIcon(appIcon));
 
             // size & center
             var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest);
@@ -55,6 +65,8 @@ namespace CustomPrintDocument
 
         private void PrintTaskCompleted(PrintTaskCompletedEventArgs args)
         {
+            openButton.Visibility = Visibility.Visible;
+            cancelButton.Visibility = Visibility.Collapsed;
             switch (args.Completion)
             {
                 case PrintTaskCompletion.Failed:
@@ -77,10 +89,31 @@ namespace CustomPrintDocument
                     status.Severity = InfoBarSeverity.Success;
                     break;
             }
-            status.IsOpen = true;
+
+            if (_printDocument != null)
+            {
+                _printDocument.PackageStatusUpdated -= OnPackageStatusUpdated;
+            }
+            _printDocument = null;
         }
 
-        private async void print_Click(object sender, RoutedEventArgs e)
+        private void OnPackageStatusUpdated(object sender, PackageStatusUpdatedEventArgs e)
+        {
+            if (e.Status.Completion == PrintDocumentPackageCompletion.PrintDocumentPackageCompletion_InProgress)
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    var doc = (BasePrintDocument)sender;
+                    var totalPages = doc.TotalPages.HasValue ? "/" + doc.TotalPages.Value.ToString() : null;
+                    status.Title = $"Print job in progress: {e.Status.CurrentPage}{totalPages} page(s)";
+                    status.Severity = InfoBarSeverity.Informational;
+                    openButton.Visibility = Visibility.Collapsed;
+                    cancelButton.Visibility = Visibility.Visible;
+                });
+            }
+        }
+
+        private async void OnPrintClicked(object sender, RoutedEventArgs e)
         {
             var fop = new FileOpenPicker();
             WinRT.Interop.InitializeWithWindow.Initialize(fop, Win32Interop.GetWindowFromWindowId(AppWindow.Id));
@@ -102,7 +135,13 @@ namespace CustomPrintDocument
             else
                 return;
 
+            _printDocument.PackageStatusUpdated += OnPackageStatusUpdated;
             await PrintManagerInterop.ShowPrintUIForWindowAsync(Win32Interop.GetWindowFromWindowId(AppWindow.Id));
+        }
+
+        private void OnCancelClicked(object sender, RoutedEventArgs e)
+        {
+            _printDocument?.Cancel();
         }
     }
 }

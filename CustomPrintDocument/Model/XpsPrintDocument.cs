@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Windows.Win32;
 using Windows.Win32.Storage.Xps;
 using Windows.Win32.Storage.Xps.Printing;
@@ -7,7 +8,7 @@ namespace CustomPrintDocument.Model
 {
     public class XpsPrintDocument(string filePath) : BasePrintDocument(filePath)
     {
-        unsafe public override void MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+        unsafe protected override Task MakeDocumentAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
         {
             ArgumentNullException.ThrowIfNull(docPackageTarget);
             // can use options for various customizations
@@ -22,6 +23,7 @@ namespace CustomPrintDocument.Model
 
             // load the file as an XPS package (could use a stream too)
             var pack = fac.CreatePackageFromFile(ToPCWSTR(FilePath), true);
+            TotalPages = 0;
 
             // build a package writer for printer
             var discard = pack.GetDiscardControlPartName();
@@ -44,6 +46,7 @@ namespace CustomPrintDocument.Model
 
                 // add all pages
                 var pagesCount = pagesRef.GetCount();
+                TotalPages += pagesCount;
                 for (uint j = 0; j < pagesCount; j++)
                 {
                     var pageRef = pagesRef.GetAt(j);
@@ -52,6 +55,7 @@ namespace CustomPrintDocument.Model
                 }
             }
             writer.Close();
+            return Task.CompletedTask;
         }
     }
 }
