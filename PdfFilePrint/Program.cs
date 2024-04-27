@@ -1,10 +1,15 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Runtime.Versioning;
 using DirectN;
 using DirectNAot.Extensions.Utilities;
 using Windows.Data.Pdf;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
+
+[assembly: DisableRuntimeMarshalling]
+[assembly: SupportedOSPlatform("windows10.0.19041.0")]
 
 namespace PdfFilePrint
 {
@@ -53,9 +58,6 @@ namespace PdfFilePrint
             packageTarget.GetPackageTarget(Constants.ID_DOCUMENTPACKAGETARGET_MSXPS, typeof(IXpsDocumentPackageTarget).GUID, out obj).ThrowOnError();
             var xpsTarget = (IXpsDocumentPackageTarget)obj;
             xpsTarget.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
-
-            // load xps file
-            xpsFactory.CreatePackage(out var xpsPackage).ThrowOnError();
 
             // build a writer
             xpsFactory.CreatePartUri(new Pwstr("/seq"), out var seqName);

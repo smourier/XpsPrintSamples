@@ -1,0 +1,9 @@
+﻿IInspectable
+HRESULT
+E_NOTIMPL
+IPrintDocumentPackageTarget
+Windows.Win32.Storage.Xps
+Windows.Win32.Storage.Xps.Printing
+ID_DOCUMENTPACKAGETARGET_MSXPS
+SHCreateMemStream
+SHCreateStreamOnFile

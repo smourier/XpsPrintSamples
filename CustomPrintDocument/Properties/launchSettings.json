@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CustomPrintDocument (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "CustomPrintDocument (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
