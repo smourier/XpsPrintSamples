@@ -92,9 +92,10 @@ namespace CustomPrintDocument
 
             if (_printDocument != null)
             {
+                _printDocument.Dispose();
                 _printDocument.PackageStatusUpdated -= OnPackageStatusUpdated;
+                _printDocument = null;
             }
-            _printDocument = null;
         }
 
         private void OnPackageStatusUpdated(object sender, PackageStatusUpdatedEventArgs e)
@@ -141,7 +142,12 @@ namespace CustomPrintDocument
 
         private void OnCancelClicked(object sender, RoutedEventArgs e)
         {
-            _printDocument?.Cancel();
+            if (_printDocument != null)
+            {
+                _printDocument.Cancel();
+                _printDocument.Dispose();
+                _printDocument = null;
+            }
         }
     }
 }

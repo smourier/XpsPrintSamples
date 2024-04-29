@@ -1,7 +1,8 @@
 {
   "profiles": {
     "CustomPrintDocument (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": true
     },
     "CustomPrintDocument (Unpackaged)": {
       "commandName": "Project"

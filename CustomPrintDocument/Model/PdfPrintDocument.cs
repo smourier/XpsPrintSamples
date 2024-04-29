@@ -33,12 +33,12 @@ namespace CustomPrintDocument.Model
             var factory = xpsTarget.GetXpsOMFactory();
 
             // build a writer
-            var seqName = factory.CreatePartUri(ToPCWSTR("/seq"));
-            var discardName = factory.CreatePartUri(ToPCWSTR("/discard"));
+            var seqName = factory.CreatePartUri("/seq");
+            var discardName = factory.CreatePartUri("/discard");
             var writer = xpsTarget.GetXpsOMPackageWriter(seqName, discardName);
 
             // start
-            var name = factory.CreatePartUri(ToPCWSTR("/" + file.DisplayName));
+            var name = factory.CreatePartUri("/" + file.DisplayName);
             writer.StartNewDocument(name, null!, null!, null!, null!);
 
             var streams = new List<Stream>();
@@ -57,7 +57,7 @@ namespace CustomPrintDocument.Model
                 // note we don't dispose streams here (close would fail)
                 var ustream = new UnmanagedMemoryStream(stream);
                 streams.Add(stream);
-                var imageUri = factory.CreatePartUri(ToPCWSTR("/image" + i));
+                var imageUri = factory.CreatePartUri("/image" + i);
                 var image = factory.CreateImageResource(ustream, XPS_IMAGE_TYPE.XPS_IMAGE_TYPE_PNG, imageUri);
 
                 // create a brush from image
@@ -94,7 +94,7 @@ namespace CustomPrintDocument.Model
                 rectPath.SetFillBrushLocal(imageBrush);
 
                 // create a page & add add rect to page
-                var pageUri = factory.CreatePartUri(ToPCWSTR("/page" + i));
+                var pageUri = factory.CreatePartUri("/page" + i);
                 var page = CreatePage(factory, size, pageUri);
                 var visuals = page.GetVisuals();
                 visuals.Append(rectPath);
@@ -108,7 +108,7 @@ namespace CustomPrintDocument.Model
             }
 
             // unsafes in async
-            static unsafe IXpsOMPage CreatePage(IXpsOMObjectFactory factory, XPS_SIZE size, IOpcPartUri pageUri) => factory.CreatePage(&size, ToPCWSTR("en"), pageUri); // note: language is NOT optional
+            static unsafe IXpsOMPage CreatePage(IXpsOMObjectFactory factory, XPS_SIZE size, IOpcPartUri pageUri) => factory.CreatePage(size, "en", pageUri); // note: language is NOT optional
             static unsafe IXpsDocumentPackageTarget GetXpsDocumentPackageTarget(IPrintDocumentPackageTarget docPackageTarget)
             {
                 var IXpsDocumentPackageTargetGuid = typeof(IXpsDocumentPackageTarget).GUID;

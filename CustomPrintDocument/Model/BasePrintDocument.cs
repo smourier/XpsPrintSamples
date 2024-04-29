@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using CustomPrintDocument.Utilities;
 using Windows.Graphics.Printing;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Printing;
 using Windows.Win32.Storage.Xps.Printing;
 using Windows.Win32.System.Com;
 using Windows.Win32.System.WinRT;
@@ -12,10 +14,10 @@ namespace CustomPrintDocument.Model
 {
     // note: we can't use DirectN AOT because there are some issue when authoring COM classes in .NET between ComWrappers, AOT and C#/WinRT
     // and we can't use GeneratedComClass either...
-    public abstract class BasePrintDocument : IPrintDocumentSource, IInspectable, IPrintDocumentPageSource, IPrintPreviewPageCollection
+    public abstract class BasePrintDocument : IPrintDocumentSource, IInspectable, IPrintDocumentPageSource, IPrintPreviewPageCollection, IDisposable
     {
         public event EventHandler<PackageStatusUpdatedEventArgs> PackageStatusUpdated;
-        private IPrintDocumentPackageTarget _docPackageTarget;
+        private UnknownObject<IPrintDocumentPackageTarget> _docPackageTarget;
 
         protected BasePrintDocument(string filePath)
         {
@@ -25,36 +27,41 @@ namespace CustomPrintDocument.Model
 
         public string FilePath { get; }
         public virtual uint? TotalPages { get; protected set; } // when/if known
+        protected virtual PrintTarget PrintTarget { get; set; }
 
-        public virtual void Cancel() => _docPackageTarget?.Cancel();
+        public virtual void Cancel() => _docPackageTarget?.Object?.Cancel();
 
         unsafe HRESULT IInspectable.GetRuntimeClassName(HSTRING* className) => HRESULT.E_NOTIMPL; // avoid throwing...
         unsafe void IInspectable.GetTrustLevel(TrustLevel* trustLevel) => throw new NotImplementedException();
         unsafe void IInspectable.GetIids(out uint iidCount, Guid** iids) { iidCount = 0; throw new NotImplementedException(); }
         void IPrintDocumentPageSource.MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget) => MakeDocument(printTaskOptions, docPackageTarget);
         IPrintPreviewPageCollection IPrintDocumentPageSource.GetPreviewPageCollection(IPrintDocumentPackageTarget docPackageTarget) => GetPreviewPageCollection(docPackageTarget);
-        void IPrintPreviewPageCollection.MakePage(int desiredJobPage, float width, float height) => MakePage(desiredJobPage, width, height);
-        void IPrintPreviewPageCollection.Paginate(int currentJobPage, nint printTaskOptions) => Paginate(currentJobPage, printTaskOptions);
+        void IPrintPreviewPageCollection.MakePage(uint desiredJobPage, float width, float height) => MakePreviewPage(desiredJobPage, width, height);
+        void IPrintPreviewPageCollection.Paginate(uint currentJobPage, nint printTaskOptions) => PreviewPaginate(currentJobPage, printTaskOptions);
 
         // overridable methods
         protected virtual IPrintPreviewPageCollection GetPreviewPageCollection(IPrintDocumentPackageTarget docPackageTarget)
         {
+            docPackageTarget.GetPackageTarget(typeof(IPrintPreviewDxgiPackageTarget).GUID, typeof(IPrintPreviewDxgiPackageTarget).GUID, out var obj);
+            if (obj is IPrintPreviewDxgiPackageTarget target)
+            {
+                PrintTarget = GetPrintTarget(target);
+                if (TotalPages.HasValue)
+                {
+                    PrintTarget.SetJobPageCount(PageCountType.FinalPageCount, TotalPages.Value);
+                }
+            }
             return this;
         }
 
-        protected virtual void MakePage(int desiredJobPage, float width, float height)
-        {
-        }
-
-        protected virtual void Paginate(int currentJobPage, nint printTaskOptions)
-        {
-        }
-
+        protected virtual void MakePreviewPage(uint desiredJobPage, float width, float height) => PrintTarget?.MakePreviewPage(desiredJobPage, width, height);
+        protected virtual void PreviewPaginate(uint currentJobPage, nint printTaskOptions) => PrintTarget?.PreviewPaginate(currentJobPage, printTaskOptions);
+        protected virtual PrintTarget GetPrintTarget(IPrintPreviewDxgiPackageTarget target) => null;
         protected abstract Task MakeDocumentAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget);
         protected virtual async void MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
         {
             ArgumentNullException.ThrowIfNull(docPackageTarget);
-            _docPackageTarget = docPackageTarget;
+            _docPackageTarget = new UnknownObject<IPrintDocumentPackageTarget>(docPackageTarget);
 
             IConnectionPoint connectionPoint = null;
             uint cookie = 0;
@@ -80,7 +87,7 @@ namespace CustomPrintDocument.Model
             }
             finally
             {
-                _docPackageTarget = null;
+                Dispose(true);
                 if (connectionPoint != null && cookie != 0)
                 {
                     connectionPoint.Unadvise(cookie);
@@ -93,18 +100,22 @@ namespace CustomPrintDocument.Model
 
         private class StatusSink(BasePrintDocument document) : IPrintDocumentPackageStatusEvent
         {
-            unsafe void IPrintDocumentPackageStatusEvent.PackageStatusUpdated(PrintDocumentPackageStatus* packageStatus)
+            unsafe void IPrintDocumentPackageStatusEvent.PackageStatusUpdated(PrintDocumentPackageStatus* packageStatus) => document.OnPackageStatusUpdated(document, new PackageStatusUpdatedEventArgs(*packageStatus));
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                document.OnPackageStatusUpdated(document, new PackageStatusUpdatedEventArgs(*packageStatus));
+                var target = PrintTarget;
+                PrintTarget = null;
+                target?.Dispose();
+                Extensions.Dispose(ref _docPackageTarget);
             }
         }
 
-        // tooling
-        internal unsafe static PCWSTR ToPCWSTR(string text)
-        {
-            fixed (char* p = text)
-                return new PCWSTR(p);
-        }
+        ~BasePrintDocument() { Dispose(disposing: false); }
+        public void Dispose() { Dispose(disposing: true); GC.SuppressFinalize(this); }
     }
 
 #pragma warning disable SYSLIB1096 // Convert to 'GeneratedComInterface'
@@ -119,8 +130,8 @@ namespace CustomPrintDocument.Model
     [ComImport, Guid("0b31cc62-d7ec-4747-9d6e-f2537d870f2b"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IPrintPreviewPageCollection
     {
-        void Paginate(int currentJobPage, IntPtr printTaskOptions);
-        void MakePage(int desiredJobPage, float width, float height);
+        void Paginate(uint currentJobPage, IntPtr printTaskOptions);
+        void MakePage(uint desiredJobPage, float width, float height);
     }
 #pragma warning restore SYSLIB1096 // Convert to 'GeneratedComInterface'
 }
