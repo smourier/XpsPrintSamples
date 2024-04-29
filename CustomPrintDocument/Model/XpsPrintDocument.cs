@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using CustomPrintDocument.Utilities;
 using Windows.Graphics.Printing;
 using Windows.Win32;
 using Windows.Win32.Graphics.Direct2D;
 using Windows.Win32.Graphics.Direct2D.Common;
+using Windows.Win32.Graphics.Direct3D11;
 using Windows.Win32.Graphics.Dxgi;
 using Windows.Win32.Graphics.Dxgi.Common;
 using Windows.Win32.Graphics.Printing;
@@ -29,7 +29,7 @@ namespace CustomPrintDocument.Model
 
         protected override PrintTarget GetPrintTarget(IPrintPreviewDxgiPackageTarget target) => new XpsPrintTarget(this, target);
 
-        unsafe protected override Task MakeDocumentAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+        unsafe protected override void MakeDocumentCore(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
         {
             ArgumentNullException.ThrowIfNull(docPackageTarget);
             // can use options for various customizations
@@ -47,7 +47,7 @@ namespace CustomPrintDocument.Model
             var documents = sequence.GetDocuments();
             var count = documents.GetCount();
             if (count == 0)
-                return Task.CompletedTask;
+                return;
 
             // get a package writer
             var seqName = factory.CreatePartUri("/seq");
@@ -71,11 +71,12 @@ namespace CustomPrintDocument.Model
                 writer.AddPage(page, null, null, null, null, null);
             }
             writer.Close();
-            return Task.CompletedTask;
         }
 
         private sealed class XpsPrintTarget : PrintTarget
         {
+            private UnknownObject<ID3D11Device> _d3D11Device;
+            private UnknownObject<ID2D1Device> _d2D1Device;
             private UnknownObject<IXpsOMDocument> _document;
             private UnknownObject<ID2D1DeviceContext> _deviceContext;
             private UnknownObject<IDXGISurface> _surface;
@@ -114,6 +115,13 @@ namespace CustomPrintDocument.Model
                 var pagesCount = pagesRef.GetCount();
                 Marshal.ReleaseComObject(pagesRef);
                 printDocument.TotalPages += pagesCount;
+
+                _d3D11Device = Extensions.CreateD3D11Device();
+                var dxgiDevice = (IDXGIDevice)_d3D11Device.Object;
+
+                using var d2D1Factory = Extensions.CreateD2D1Factory();
+                d2D1Factory.Object.CreateDevice(dxgiDevice, out var d2D1Device);
+                _d2D1Device = new UnknownObject<ID2D1Device>(d2D1Device);
             }
 
             private void EnsureSurface(float width, float height)
@@ -125,9 +133,9 @@ namespace CustomPrintDocument.Model
                 Extensions.Dispose(ref _surface);
 
                 // create a DC with a surface/texture as target
-                D2D1Device.Object.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var deviceContext);
+                _d2D1Device.Object.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var deviceContext);
                 _deviceContext = new UnknownObject<ID2D1DeviceContext>(deviceContext);
-                _surface = CreateSurface((uint)width, (uint)height);
+                _surface = _d3D11Device.Object.CreateSurface((uint)width, (uint)height);
 
                 var props = new D2D1_BITMAP_PROPERTIES1
                 {
@@ -273,6 +281,8 @@ namespace CustomPrintDocument.Model
                     Extensions.Dispose(ref _pageBitmap);
                     Extensions.Dispose(ref _surface);
                     Extensions.Dispose(ref _deviceContext);
+                    Extensions.Dispose(ref _d2D1Device);
+                    Extensions.Dispose(ref _d3D11Device);
                 }
                 base.Dispose(disposing);
             }

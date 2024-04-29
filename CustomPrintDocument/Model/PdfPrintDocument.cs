@@ -14,13 +14,12 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Direct2D;
 using Windows.Win32.Graphics.Direct2D.Common;
+using Windows.Win32.Graphics.Direct3D11;
 using Windows.Win32.Graphics.Dxgi;
-using Windows.Win32.Graphics.Imaging;
 using Windows.Win32.Graphics.Printing;
 using Windows.Win32.Storage.Packaging.Opc;
 using Windows.Win32.Storage.Xps;
 using Windows.Win32.Storage.Xps.Printing;
-using Windows.Win32.System.Com;
 using Windows.Win32.System.WinRT.Pdf;
 using WinRT;
 
@@ -28,44 +27,71 @@ namespace CustomPrintDocument.Model
 {
     public sealed class PdfPrintDocument : BasePrintDocument
     {
-        private PdfPrintDocumentRenderingMode _renderingMode;
-        private UnknownObject<IWICImagingFactory> _imagingFactory;
+        private PdfPrintingMode _printingMode;
 
         public PdfPrintDocument(string filePath)
             : base(filePath)
         {
-            PInvoke.CoCreateInstance(PInvoke.CLSID_WICImagingFactory, null, CLSCTX.CLSCTX_ALL, typeof(IWICImagingFactory).GUID, out var obj).ThrowOnFailure();
-            _imagingFactory = new UnknownObject<IWICImagingFactory>((IWICImagingFactory)obj);
-            _renderingMode = PdfPrintDocumentRenderingMode.Native;
+            _printingMode = PdfPrintingMode.Direct2D;
         }
 
-        public PdfPrintDocumentRenderingMode RenderingMode { get => _renderingMode; set { if (_renderingMode == value) return; _renderingMode = value; PrintTarget?.InvalidatePreview(); } }
+        public PdfPrintingMode PrintingMode { get => _printingMode; set { if (_printingMode == value) return; _printingMode = value; PrintTarget?.InvalidatePreview(); } }
+        public bool? Direct2DIgnoreHighContrast { get; set; }
+        public float? Direct2DRasterDpi { get; set; }
+        public D2D1_COLOR_SPACE? Direct2DColorSpace { get; set; }
+        public D2D1_PRINT_FONT_SUBSET_MODE? Direct2DFontSubset { get; set; }
         private new PdfPrintTarget PrintTarget => (PdfPrintTarget)base.PrintTarget;
 
         protected override PrintTarget GetPrintTarget(IPrintPreviewDxgiPackageTarget target) => new PdfPrintTarget(this, target);
 
-        protected override Task MakeDocumentAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+        protected override void MakeDocumentCore(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
         {
             ArgumentNullException.ThrowIfNull(docPackageTarget);
             // can use options for various customizations
             // var options = MarshalInterface<PrintTaskOptions>.FromAbi(printTaskOptions);
-            if (RenderingMode == PdfPrintDocumentRenderingMode.Xps)
-                return MakeDocumentUsingXpsAsync(printTaskOptions, docPackageTarget);
+            if (PrintingMode == PdfPrintingMode.Xps)
+            {
+                MakeDocumentUsingXpsAsync(printTaskOptions, docPackageTarget).Wait();
+            }
 
-            return MakeDocumentUsingNativeAsync(printTaskOptions, docPackageTarget);
+            MakeDocumentUsingNative(printTaskOptions, docPackageTarget);
         }
 
-        private Task MakeDocumentUsingNativeAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+        private void MakeDocumentUsingNative(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
         {
             var props = new D2D1_PRINT_CONTROL_PROPERTIES();
+            if (Direct2DRasterDpi.HasValue)
+            {
+                props.rasterDPI = Direct2DRasterDpi.Value;
+            }
 
-            PrintTarget.D2D1Device.Object.CreatePrintControl(_imagingFactory.Object, docPackageTarget, props, out var printControl);
-            PrintTarget.D2D1Device.Object.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var dc);
+            if (Direct2DFontSubset.HasValue)
+            {
+                props.fontSubset = Direct2DFontSubset.Value;
+            }
+
+            if (Direct2DColorSpace.HasValue)
+            {
+                props.colorSpace = Direct2DColorSpace.Value;
+            }
 
             var renderParams = new PDF_RENDER_PARAMS
             {
                 BackgroundColor = new D2D_COLOR_F { a = 1, r = 1, g = 1, b = 1 }
             };
+
+            if (Direct2DIgnoreHighContrast.HasValue)
+            {
+                renderParams.IgnoreHighContrast = Direct2DIgnoreHighContrast.Value;
+            }
+
+            using var imagingFactory = Extensions.CreateWICImagingFactory();
+            using var d3D11Device = Extensions.CreateD3D11Device();
+            using var d2D1Factory = Extensions.CreateD2D1Factory();
+            var dxgiDevice = (IDXGIDevice)d3D11Device.Object;
+            d2D1Factory.Object.CreateDevice(dxgiDevice, out var d2D1Device);
+            d2D1Device.CreatePrintControl(imagingFactory.Object, docPackageTarget, props, out var printControl);
+            d2D1Device.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var dc);
 
             unsafe
             {
@@ -75,7 +101,10 @@ namespace CustomPrintDocument.Model
                     dc.SetTarget(commandList);
 
                     var page = PrintTarget._pdfDocument.GetPage(i);
+                    dc.BeginDraw();
                     PrintTarget._renderer.Object.RenderPageToDeviceContext(page, dc, renderParams);
+                    dc.EndDraw();
+                    commandList.Close();
                     printControl.AddPage(commandList, new D2D_SIZE_F { width = (float)page.Size.Width, height = (float)page.Size.Height }, null);
                     Marshal.ReleaseComObject(commandList);
                 }
@@ -84,7 +113,7 @@ namespace CustomPrintDocument.Model
             printControl.Close();
             Marshal.ReleaseComObject(dc);
             Marshal.ReleaseComObject(printControl);
-            return Task.CompletedTask;
+            Marshal.ReleaseComObject(d2D1Device);
         }
 
         private async Task MakeDocumentUsingXpsAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
@@ -178,19 +207,10 @@ namespace CustomPrintDocument.Model
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                Extensions.Dispose(ref _imagingFactory);
-            }
-            base.Dispose(disposing);
-        }
-
         private sealed class PdfPrintTarget : PrintTarget
         {
+            private UnknownObject<ID3D11Device> _d3D11Device;
             private UnknownObject<IDXGISurface> _surface;
-            private UnknownObject<ID2D1PrintControl> _d2D1PrintControl;
             internal UnknownObject<IPdfRendererNative> _renderer;
             internal PdfDocument _pdfDocument;
             private float? _surfaceWidth;
@@ -205,13 +225,11 @@ namespace CustomPrintDocument.Model
             {
                 _printDocument = printDocument;
 
-                var dxgiDevice = (IDXGIDevice)D3D11Device.Object;
+                _d3D11Device = Extensions.CreateD3D11Device();
+                var dxgiDevice = (IDXGIDevice)_d3D11Device.Object;
                 PInvoke.PdfCreateRenderer(dxgiDevice, out var renderer).ThrowOnFailure();
                 _renderer = new UnknownObject<IPdfRendererNative>(renderer);
             }
-
-            public new UnknownObject<ID2D1Device> D2D1Device => base.D2D1Device;
-            public new UnknownObject<IDXGISurface> CreateSurface(uint width, uint height) => base.CreateSurface(width, height);
 
             private async Task EnsureDocumentAsync()
             {
@@ -232,7 +250,7 @@ namespace CustomPrintDocument.Model
                 EnsureDocumentAsync().Wait();
                 Extensions.Dispose(ref _surface);
 
-                _surface = CreateSurface((uint)width, (uint)height);
+                _surface = _d3D11Device.Object.CreateSurface((uint)width, (uint)height);
                 _surfaceWidth = width;
                 _surfaceHeight = height;
             }
@@ -298,7 +316,7 @@ namespace CustomPrintDocument.Model
                     _stopped = true;
                     Extensions.Dispose(ref _surface);
                     Extensions.Dispose(ref _renderer);
-                    Extensions.Dispose(ref _d2D1PrintControl);
+                    Extensions.Dispose(ref _d3D11Device);
                 }
                 base.Dispose(disposing);
             }

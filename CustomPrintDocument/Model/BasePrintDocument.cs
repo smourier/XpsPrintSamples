@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using CustomPrintDocument.Utilities;
 using Windows.Graphics.Printing;
 using Windows.Win32;
@@ -57,8 +56,8 @@ namespace CustomPrintDocument.Model
         protected virtual void MakePreviewPage(uint desiredJobPage, float width, float height) => PrintTarget?.MakePreviewPage(desiredJobPage, width, height);
         protected virtual void PreviewPaginate(uint currentJobPage, nint printTaskOptions) => PrintTarget?.PreviewPaginate(currentJobPage, printTaskOptions);
         protected virtual PrintTarget GetPrintTarget(IPrintPreviewDxgiPackageTarget target) => null;
-        protected abstract Task MakeDocumentAsync(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget);
-        protected virtual async void MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+        protected abstract void MakeDocumentCore(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget);
+        protected virtual void MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
         {
             ArgumentNullException.ThrowIfNull(docPackageTarget);
             _docPackageTarget = new UnknownObject<IPrintDocumentPackageTarget>(docPackageTarget);
@@ -77,7 +76,7 @@ namespace CustomPrintDocument.Model
 
             try
             {
-                await MakeDocumentAsync(printTaskOptions, docPackageTarget);
+                MakeDocumentCore(printTaskOptions, docPackageTarget);
             }
             catch (COMException exception)
             {

@@ -1,8 +1,8 @@
 ﻿namespace CustomPrintDocument.Model
 {
-    public enum PdfPrintDocumentRenderingMode
+    public enum PdfPrintingMode
     {
         Xps,
-        Native,
+        Direct2D, // better quality
     }
 }
