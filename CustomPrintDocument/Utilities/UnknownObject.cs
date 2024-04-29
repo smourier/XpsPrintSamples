@@ -18,7 +18,7 @@ namespace CustomPrintDocument.Utilities
             _instance = (T)instance;
         }
 
-        public T Object => (T)_instance;
+        public T Object => (T)_instance; // when cast fail if _instance is not null, it's probably a threading issue
         public bool IsDisposed => _instance == null;
         public void Dispose()
         {

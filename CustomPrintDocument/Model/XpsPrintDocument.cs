@@ -17,15 +17,15 @@ using WinRT;
 
 namespace CustomPrintDocument.Model
 {
-    public class XpsPrintDocument(string filePath) : BasePrintDocument(filePath)
+    public sealed class XpsPrintDocument(string filePath) : BasePrintDocument(filePath)
     {
         private XPSRAS_RENDERING_MODE _previewTextRenderingMode = XPSRAS_RENDERING_MODE.XPSRAS_RENDERING_MODE_ANTIALIASED;
         private XPSRAS_RENDERING_MODE _previewNonTextRenderingMode = XPSRAS_RENDERING_MODE.XPSRAS_RENDERING_MODE_ANTIALIASED;
         private int? _rasterizerMinimalLineWidth;
 
-        public virtual XPSRAS_RENDERING_MODE PreviewTextRenderingMode { get => _previewTextRenderingMode; set { if (_previewTextRenderingMode == value) return; _previewTextRenderingMode = value; PrintTarget?.InvalidatePreview(); } }
-        public virtual XPSRAS_RENDERING_MODE PreviewNonTextRenderingMode { get => _previewNonTextRenderingMode; set { if (_previewNonTextRenderingMode == value) return; _previewNonTextRenderingMode = value; PrintTarget?.InvalidatePreview(); } }
-        public virtual int? RasterizerMinimalLineWidth { get => _rasterizerMinimalLineWidth; set { if (_rasterizerMinimalLineWidth == value) return; _rasterizerMinimalLineWidth = value; PrintTarget?.InvalidatePreview(); } }
+        public XPSRAS_RENDERING_MODE PreviewTextRenderingMode { get => _previewTextRenderingMode; set { if (_previewTextRenderingMode == value) return; _previewTextRenderingMode = value; PrintTarget?.InvalidatePreview(); } }
+        public XPSRAS_RENDERING_MODE PreviewNonTextRenderingMode { get => _previewNonTextRenderingMode; set { if (_previewNonTextRenderingMode == value) return; _previewNonTextRenderingMode = value; PrintTarget?.InvalidatePreview(); } }
+        public int? RasterizerMinimalLineWidth { get => _rasterizerMinimalLineWidth; set { if (_rasterizerMinimalLineWidth == value) return; _rasterizerMinimalLineWidth = value; PrintTarget?.InvalidatePreview(); } }
 
         protected override PrintTarget GetPrintTarget(IPrintPreviewDxgiPackageTarget target) => new XpsPrintTarget(this, target);
 

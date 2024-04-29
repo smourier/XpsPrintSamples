@@ -10,6 +10,7 @@ CLSID_XPSRASTERIZER_FACTORY
 
 IConnectionPointContainer
 ID2D1Factory1
+ID2D1Multithread
 ID2D1PrintControl
 ID3D11Device
 ID3D11Multithread 

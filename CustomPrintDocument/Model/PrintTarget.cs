@@ -19,15 +19,12 @@ namespace CustomPrintDocument.Model
 
         private UnknownObject<ID3D11Device> _d3D11Device;
         private UnknownObject<ID2D1Device> _d2D1Device;
-        //private IWICImagingFactory _imagingFactory;
-        //private ID2D1PrintControl _d2D1PrintControl;
         private UnknownObject<IPrintPreviewDxgiPackageTarget> _previewTarget;
 
         protected PrintTarget(IPrintPreviewDxgiPackageTarget target)
         {
             ArgumentNullException.ThrowIfNull(target);
             _previewTarget = new UnknownObject<IPrintPreviewDxgiPackageTarget>(target);
-            Marshal.GetIUnknownForObject(target); // equivalent to AddRef
 
             var flags = D3D11_CREATE_DEVICE_FLAG.D3D11_CREATE_DEVICE_BGRA_SUPPORT; // D2D
 #if DEBUG
@@ -61,13 +58,11 @@ namespace CustomPrintDocument.Model
             d2D1Factory.CreateDevice(dxgiDevice, out var d2D1Device);
             _d2D1Device = new UnknownObject<ID2D1Device>(d2D1Device);
             Marshal.ReleaseComObject(obj);
-
-            //PInvoke.CoCreateInstance(PInvoke.CLSID_WICImagingFactory, null, Windows.Win32.System.Com.CLSCTX.CLSCTX_ALL, typeof(IWICImagingFactory).GUID, out obj).ThrowOnFailure();
-            //_imagingFactory = (IWICImagingFactory)obj;
         }
 
         protected UnknownObject<IPrintPreviewDxgiPackageTarget> PreviewTarget => _previewTarget;
         protected UnknownObject<ID2D1Device> D2D1Device => _d2D1Device;
+        protected UnknownObject<ID3D11Device> D3D11Device => _d3D11Device;
 
         protected virtual UnknownObject<IDXGISurface> CreateSurface(uint width, uint height)
         {
@@ -97,12 +92,6 @@ namespace CustomPrintDocument.Model
             var target = Interlocked.Exchange(ref _previewTarget, null);
             if (target != null)
             {
-                var unk = Marshal.GetIUnknownForObject(target);
-                Marshal.Release(unk);
-                Marshal.Release(unk);
-
-                //_imagingFactory.ReleaseComObject();
-                //_d2D1PrintControl.ReleaseComObject();
                 Extensions.Dispose(ref _previewTarget);
                 Extensions.Dispose(ref _d2D1Device);
                 Extensions.Dispose(ref _d3D11Device);
