@@ -91,6 +91,9 @@ namespace CustomPrintDocument.Model
                 {
                     connectionPoint.Unadvise(cookie);
                 }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
         }
 

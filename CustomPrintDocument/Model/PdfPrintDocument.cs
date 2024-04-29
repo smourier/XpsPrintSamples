@@ -111,8 +111,8 @@ namespace CustomPrintDocument.Model
             }
 
             printControl.Close();
-            Marshal.ReleaseComObject(dc);
             Marshal.ReleaseComObject(printControl);
+            Marshal.ReleaseComObject(dc);
             Marshal.ReleaseComObject(d2D1Device);
         }
 
