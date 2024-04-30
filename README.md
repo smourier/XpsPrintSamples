@@ -1,5 +1,5 @@
 # XpsPrintSamples
-Xps and PDF file printing samples
+XPS and PDF file printing samples
 
 * **XpsFilePrint**: a project (AOT friendly) that demonstrates how to print an XPS file (to any printer, including XPS, PDF, ...)
 * **PdfFilePrint**: a project (AOT friendly) that demonstrates how to print a PDF file (to any printer, including XPS, PDF, ...)
