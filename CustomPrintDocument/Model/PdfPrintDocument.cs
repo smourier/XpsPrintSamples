@@ -25,15 +25,9 @@ using WinRT;
 
 namespace CustomPrintDocument.Model
 {
-    public sealed class PdfPrintDocument : BasePrintDocument
+    public sealed class PdfPrintDocument(string filePath) : BasePrintDocument(filePath)
     {
-        private PdfPrintingMode _printingMode;
-
-        public PdfPrintDocument(string filePath)
-            : base(filePath)
-        {
-            _printingMode = PdfPrintingMode.Direct2D;
-        }
+        private PdfPrintingMode _printingMode = PdfPrintingMode.Direct2D;
 
         public PdfPrintingMode PrintingMode { get => _printingMode; set { if (_printingMode == value) return; _printingMode = value; PrintTarget?.InvalidatePreview(); } }
         public bool? Direct2DIgnoreHighContrast { get; set; }
@@ -57,7 +51,9 @@ namespace CustomPrintDocument.Model
             MakeDocumentUsingDirect2D(printTaskOptions, docPackageTarget);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         private void MakeDocumentUsingDirect2D(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var props = new D2D1_PRINT_CONTROL_PROPERTIES();
             if (Direct2DRasterDpi.HasValue)
