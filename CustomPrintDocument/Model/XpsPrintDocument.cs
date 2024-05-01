@@ -39,10 +39,10 @@ namespace CustomPrintDocument.Model
             var xpsGuid = PInvoke.ID_DOCUMENTPACKAGETARGET_MSXPS;
             docPackageTarget.GetPackageTarget(&xpsGuid, &IXpsDocumentPackageTargetGuid, out var obj);
             var target = (IXpsDocumentPackageTarget)obj;
-            var factory = target.GetXpsOMFactory();
+            var factory = (IXpsOMObjectFactory1)target.GetXpsOMFactory();
 
             // reload package (we may not run on same thead as preview)
-            var package = factory.CreatePackageFromFile(FilePath, true);
+            var package = factory.CreatePackageFromFile1(FilePath, true);
             var sequence = package.GetDocumentSequence();
             var documents = sequence.GetDocuments();
             var count = documents.GetCount();
@@ -95,8 +95,8 @@ namespace CustomPrintDocument.Model
                 _printDocument = printDocument;
 
                 // load the file as an XPS package (could use a stream too)
-                var factory = (IXpsOMObjectFactory)new XpsOMObjectFactory();
-                var package = factory.CreatePackageFromFile(printDocument.FilePath, true);
+                var factory = (IXpsOMObjectFactory1)new XpsOMObjectFactory();
+                var package = factory.CreatePackageFromFile1(printDocument.FilePath, true);
                 Marshal.ReleaseComObject(factory);
                 printDocument.TotalPages = 0;
 

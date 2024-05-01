@@ -120,6 +120,7 @@ namespace CustomPrintDocument
             WinRT.Interop.InitializeWithWindow.Initialize(fop, Win32Interop.GetWindowFromWindowId(AppWindow.Id));
             fop.FileTypeFilter.Add(".pdf");
             fop.FileTypeFilter.Add(".xps");
+            fop.FileTypeFilter.Add(".oxps");
             var file = await fop.PickSingleFileAsync();
             if (file == null)
                 return;
@@ -129,7 +130,7 @@ namespace CustomPrintDocument
             {
                 _printDocument = new PdfPrintDocument(file.Path);
             }
-            else if (ext == ".xps")
+            else if (ext == ".xps" || ext == ".oxps")
             {
                 _printDocument = new XpsPrintDocument(file.Path);
             }
