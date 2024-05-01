@@ -54,10 +54,10 @@ namespace CustomPrintDocument.Model
                 MakeDocumentUsingXpsAsync(printTaskOptions, docPackageTarget).Wait();
             }
 
-            MakeDocumentUsingNative(printTaskOptions, docPackageTarget);
+            MakeDocumentUsingDirect2D(printTaskOptions, docPackageTarget);
         }
 
-        private void MakeDocumentUsingNative(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
+        private void MakeDocumentUsingDirect2D(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
         {
             var props = new D2D1_PRINT_CONTROL_PROPERTIES();
             if (Direct2DRasterDpi.HasValue)
