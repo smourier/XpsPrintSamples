@@ -110,7 +110,7 @@ namespace XpsFilePrint
         }
 
         // IDispatch
-        public HRESULT GetIDsOfNames(in Guid riid, [MarshalUsing(CountElementName = "cNames")] in PWSTR[] rgszNames, uint cNames, uint lcid, [MarshalUsing(CountElementName = "cNames")] out int[] rgDispId) => throw new NotSupportedException();
+        public HRESULT GetIDsOfNames(in Guid riid, PWSTR[] rgszNames, uint cNames, uint lcid, int[] rgDispId) => throw new NotSupportedException();
         public HRESULT GetTypeInfo(uint iTInfo, uint lcid, out ITypeInfo ppTInfo) => throw new NotSupportedException();
         public HRESULT GetTypeInfoCount(out uint pctinfo) => throw new NotSupportedException();
         public HRESULT Invoke(int dispIdMember, in Guid riid, uint lcid, DISPATCH_FLAGS wFlags, in DISPPARAMS pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr) => throw new NotSupportedException();
