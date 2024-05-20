@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 using DirectN;
-using DirectNAot.Extensions.Utilities;
+using DirectN.Extensions.Utilities;
 
 [assembly: DisableRuntimeMarshalling]
 [assembly: SupportedOSPlatform("windows10.0.19041.0")]
@@ -24,10 +24,9 @@ namespace XpsFilePrint
 
         static void PrintJob(string filePath, string printerName)
         {
-            Functions.CoCreateInstance(Constants.CLSID_PrintDocumentPackageTargetFactory, 0, CLSCTX.CLSCTX_INPROC_SERVER, typeof(IPrintDocumentPackageTargetFactory).GUID, out object obj).ThrowOnError();
-            var factory = (IPrintDocumentPackageTargetFactory)obj;
-
-            factory.CreateDocumentPackageTargetForPrintJob(
+            Functions.CoCreateInstance(Constants.CLSID_PrintDocumentPackageTargetFactory, 0, CLSCTX.CLSCTX_INPROC_SERVER, typeof(IPrintDocumentPackageTargetFactory).GUID, out var unk).ThrowOnError();
+            using var factory = DirectN.Extensions.Com.ComObject.FromPointer<IPrintDocumentPackageTargetFactory>(unk)!;
+            factory.Object.CreateDocumentPackageTargetForPrintJob(
                 new Pwstr(printerName),
                 new Pwstr(Path.GetFileName(filePath)),
                 null!, // null, send to printer
@@ -49,9 +48,9 @@ namespace XpsFilePrint
             // this will usually get us ID_DOCUMENTPACKAGETARGET_MSXPS & ID_DOCUMENTPACKAGETARGET_OPENXPS
             //packageTarget.GetPackageTargetTypes(out var count, out var types).ThrowOnError();
 
-            packageTarget.GetPackageTarget(Constants.ID_DOCUMENTPACKAGETARGET_MSXPS, typeof(IXpsDocumentPackageTarget).GUID, out obj).ThrowOnError();
-            var xpsTarget = (IXpsDocumentPackageTarget)obj;
-            xpsTarget.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
+            packageTarget.GetPackageTarget(Constants.ID_DOCUMENTPACKAGETARGET_MSXPS, typeof(IXpsDocumentPackageTarget).GUID, out var unk2).ThrowOnError();
+            using var xpsTarget = DirectN.Extensions.Com.ComObject.FromPointer<IXpsDocumentPackageTarget>(unk2)!;
+            xpsTarget.Object.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
 
             // load xps file
             xpsFactory.CreatePackageFromFile(new Pwstr(filePath), true, out var xpsPackage).ThrowOnError();
@@ -60,7 +59,7 @@ namespace XpsFilePrint
             xpsPackage.GetDiscardControlPartName(out var discardName).ThrowOnError();
             xpsPackage.GetDocumentSequence(out var seq).ThrowOnError();
             seq.GetPartName(out var seqName).ThrowOnError();
-            xpsTarget.GetXpsOMPackageWriter(seqName, discardName, out var writer).ThrowOnError();
+            xpsTarget.Object.GetXpsOMPackageWriter(seqName, discardName, out var writer).ThrowOnError();
 
             seq.GetDocuments(out var docs).ThrowOnError();
             docs.GetCount(out var docCount).ThrowOnError();

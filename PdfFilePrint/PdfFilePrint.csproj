@@ -10,8 +10,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DirectNAot\DirectNAot.Extensions\DirectNAot.Extensions.csproj" />
-		<ProjectReference Include="..\DirectNAot\DirectNAot\DirectNAot.csproj" />
+	  <ProjectReference Include="..\DirectNAot\DirectN.Extensions\DirectN.Extensions.csproj" />
+	  <ProjectReference Include="..\DirectNAot\DirectN\DirectN.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

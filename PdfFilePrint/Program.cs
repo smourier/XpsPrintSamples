@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 using DirectN;
-using DirectNAot.Extensions.Utilities;
+using DirectN.Extensions.Utilities;
 using Windows.Data.Pdf;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
@@ -30,10 +30,9 @@ namespace PdfFilePrint
             var file = await StorageFile.GetFileFromPathAsync(Path.GetFullPath(pdfFilePath));
             var pdf = await PdfDocument.LoadFromFileAsync(file);
 
-            Functions.CoCreateInstance(Constants.CLSID_PrintDocumentPackageTargetFactory, 0, CLSCTX.CLSCTX_INPROC_SERVER, typeof(IPrintDocumentPackageTargetFactory).GUID, out object obj).ThrowOnError();
-            var factory = (IPrintDocumentPackageTargetFactory)obj;
-
-            factory.CreateDocumentPackageTargetForPrintJob(
+            Functions.CoCreateInstance(Constants.CLSID_PrintDocumentPackageTargetFactory, 0, CLSCTX.CLSCTX_INPROC_SERVER, typeof(IPrintDocumentPackageTargetFactory).GUID, out var unk).ThrowOnError();
+            using var factory = DirectN.Extensions.Com.ComObject.FromPointer<IPrintDocumentPackageTargetFactory>(unk)!;
+            factory.Object.CreateDocumentPackageTargetForPrintJob(
                 new Pwstr(printerName),
                 new Pwstr(file.Name),
                 null!, // null, send to printer
@@ -55,14 +54,14 @@ namespace PdfFilePrint
             // this will usually get us ID_DOCUMENTPACKAGETARGET_MSXPS & ID_DOCUMENTPACKAGETARGET_OPENXPS
             //packageTarget.GetPackageTargetTypes(out var count, out var types).ThrowOnError();
 
-            packageTarget.GetPackageTarget(Constants.ID_DOCUMENTPACKAGETARGET_MSXPS, typeof(IXpsDocumentPackageTarget).GUID, out obj).ThrowOnError();
-            var xpsTarget = (IXpsDocumentPackageTarget)obj;
-            xpsTarget.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
+            packageTarget.GetPackageTarget(Constants.ID_DOCUMENTPACKAGETARGET_MSXPS, typeof(IXpsDocumentPackageTarget).GUID, out var unk2).ThrowOnError();
+            using var xpsTarget = DirectN.Extensions.Com.ComObject.FromPointer<IXpsDocumentPackageTarget>(unk2)!;
+            xpsTarget.Object.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
 
             // build a writer
             xpsFactory.CreatePartUri(new Pwstr("/seq"), out var seqName);
             xpsFactory.CreatePartUri(new Pwstr("/discard"), out var discardName);
-            xpsTarget.GetXpsOMPackageWriter(seqName, discardName, out var writer).ThrowOnError();
+            xpsTarget.Object.GetXpsOMPackageWriter(seqName, discardName, out var writer).ThrowOnError();
 
             // start
             xpsFactory.CreatePartUri(new Pwstr("/" + file.DisplayName), out var name).ThrowOnError();
@@ -82,7 +81,7 @@ namespace PdfFilePrint
                 stream.Position = 0;
 
                 // note we don't dispose streams here (close would fail)
-                var ustream = new DirectNAot.Extensions.Utilities.UnmanagedMemoryStream(stream);
+                var ustream = new DirectN.Extensions.Utilities.UnmanagedMemoryStream(stream);
                 streams.Add(stream);
                 xpsFactory.CreatePartUri(new Pwstr("/image" + i), out var imageUri).ThrowOnError();
                 xpsFactory.CreateImageResource(ustream, XPS_IMAGE_TYPE.XPS_IMAGE_TYPE_PNG, imageUri, out var image).ThrowOnError();
