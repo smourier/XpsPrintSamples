@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 using DirectN;
+using DirectN.Extensions.Com;
 using DirectN.Extensions.Utilities;
 using Windows.Data.Pdf;
 using Windows.Graphics.Imaging;
@@ -30,8 +30,7 @@ namespace PdfFilePrint
             var file = await StorageFile.GetFileFromPathAsync(Path.GetFullPath(pdfFilePath));
             var pdf = await PdfDocument.LoadFromFileAsync(file);
 
-            Functions.CoCreateInstance(Constants.CLSID_PrintDocumentPackageTargetFactory, 0, CLSCTX.CLSCTX_INPROC_SERVER, typeof(IPrintDocumentPackageTargetFactory).GUID, out var unk).ThrowOnError();
-            using var factory = DirectN.Extensions.Com.ComObject.FromPointer<IPrintDocumentPackageTargetFactory>(unk)!;
+            using var factory = ComObject<IPrintDocumentPackageTargetFactory>.CoCreate(Constants.CLSID_PrintDocumentPackageTargetFactory)!;
             factory.Object.CreateDocumentPackageTargetForPrintJob(
                 new Pwstr(printerName),
                 new Pwstr(file.Name),
@@ -46,8 +45,7 @@ namespace PdfFilePrint
             var status = new PrintDocumentPackageStatus();
             var sink = new StatusSink();
             sink.PackageStatusUpdated += (s, e) => status = e.Status;
-            var cw = new StrategyBasedComWrappers();
-            var sinkPtr = cw.GetOrCreateComInterfaceForObject(sink, CreateComInterfaceFlags.None);
+            var sinkPtr = ComObject.ComWrappers.GetOrCreateComInterfaceForObject(sink, CreateComInterfaceFlags.None);
             cp.Advise(sinkPtr, out var cookie).ThrowOnError();
 
             // get package target
@@ -133,7 +131,7 @@ namespace PdfFilePrint
         }
     }
 
-    [GeneratedComClass]
+    [System.Runtime.InteropServices.Marshalling.GeneratedComClass]
     public partial class StatusSink : IPrintDocumentPackageStatusEvent
     {
         public event EventHandler<PackageStatusUpdatedEventArgs>? PackageStatusUpdated;

@@ -1,9 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 using DirectN;
-using DirectN.Extensions.Utilities;
+using DirectN.Extensions.Com;
 
 [assembly: DisableRuntimeMarshalling]
 [assembly: SupportedOSPlatform("windows10.0.19041.0")]
@@ -19,16 +18,15 @@ namespace XpsFilePrint
             //PrintJob("sample.xps", "Microsoft Print to PDF");
 
             GC.Collect();
-            //GC.WaitForPendingFinalizers(); // this crashes .NET 8's ComObject (waiting for .NET 9...) see https://github.com/dotnet/runtime/issues/96901
+            GC.WaitForPendingFinalizers();
         }
 
         static void PrintJob(string filePath, string printerName)
         {
-            Functions.CoCreateInstance(Constants.CLSID_PrintDocumentPackageTargetFactory, 0, CLSCTX.CLSCTX_INPROC_SERVER, typeof(IPrintDocumentPackageTargetFactory).GUID, out var unk).ThrowOnError();
-            using var factory = DirectN.Extensions.Com.ComObject.FromPointer<IPrintDocumentPackageTargetFactory>(unk)!;
+            using var factory = ComObject<IPrintDocumentPackageTargetFactory>.CoCreate(Constants.CLSID_PrintDocumentPackageTargetFactory)!;
             factory.Object.CreateDocumentPackageTargetForPrintJob(
-                new Pwstr(printerName),
-                new Pwstr(Path.GetFileName(filePath)),
+                PWSTR.From(printerName),
+                PWSTR.From(Path.GetFileName(filePath)),
                 null!, // null, send to printer
                 null!,
                 out var packageTarget).ThrowOnError();
@@ -40,8 +38,7 @@ namespace XpsFilePrint
             var status = new PrintDocumentPackageStatus();
             var sink = new StatusSink();
             sink.PackageStatusUpdated += (s, e) => status = e.Status;
-            var cw = new StrategyBasedComWrappers();
-            var sinkPtr = cw.GetOrCreateComInterfaceForObject(sink, CreateComInterfaceFlags.None);
+            var sinkPtr = ComObject.ComWrappers.GetOrCreateComInterfaceForObject(sink, CreateComInterfaceFlags.None);
             cp.Advise(sinkPtr, out var cookie).ThrowOnError();
 
             // get package target
@@ -53,7 +50,7 @@ namespace XpsFilePrint
             xpsTarget.Object.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
 
             // load xps file
-            xpsFactory.CreatePackageFromFile(new Pwstr(filePath), true, out var xpsPackage).ThrowOnError();
+            xpsFactory.CreatePackageFromFile(PWSTR.From(filePath), true, out var xpsPackage).ThrowOnError();
 
             // build a writer
             xpsPackage.GetDiscardControlPartName(out var discardName).ThrowOnError();
@@ -64,7 +61,7 @@ namespace XpsFilePrint
             seq.GetDocuments(out var docs).ThrowOnError();
             docs.GetCount(out var docCount).ThrowOnError();
 
-            xpsFactory.CreatePartUri(new Pwstr("/" + Path.GetFileNameWithoutExtension(filePath)), out var name).ThrowOnError();
+            xpsFactory.CreatePartUri(PWSTR.From("/" + Path.GetFileNameWithoutExtension(filePath)), out var name).ThrowOnError();
             writer.StartNewDocument(name, null!, null!, null!, null!).ThrowOnError();
 
             // browse all docs (usually one)
@@ -96,7 +93,7 @@ namespace XpsFilePrint
         }
     }
 
-    [GeneratedComClass]
+    [System.Runtime.InteropServices.Marshalling.GeneratedComClass]
     public partial class StatusSink : IPrintDocumentPackageStatusEvent
     {
         public event EventHandler<PackageStatusUpdatedEventArgs>? PackageStatusUpdated;
