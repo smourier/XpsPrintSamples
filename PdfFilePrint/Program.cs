@@ -32,8 +32,8 @@ namespace PdfFilePrint
 
             using var factory = ComObject<IPrintDocumentPackageTargetFactory>.CoCreate(Constants.CLSID_PrintDocumentPackageTargetFactory)!;
             factory.Object.CreateDocumentPackageTargetForPrintJob(
-                new Pwstr(printerName),
-                new Pwstr(file.Name),
+                PWSTR.From(printerName),
+                PWSTR.From(file.Name),
                 null!, // null, send to printer
                 null!,
                 out var packageTarget).ThrowOnError();
@@ -57,12 +57,12 @@ namespace PdfFilePrint
             xpsTarget.Object.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
 
             // build a writer
-            xpsFactory.CreatePartUri(new Pwstr("/seq"), out var seqName);
-            xpsFactory.CreatePartUri(new Pwstr("/discard"), out var discardName);
+            xpsFactory.CreatePartUri(PWSTR.From("/seq"), out var seqName);
+            xpsFactory.CreatePartUri(PWSTR.From("/discard"), out var discardName);
             xpsTarget.Object.GetXpsOMPackageWriter(seqName, discardName, out var writer).ThrowOnError();
 
             // start
-            xpsFactory.CreatePartUri(new Pwstr("/" + file.DisplayName), out var name).ThrowOnError();
+            xpsFactory.CreatePartUri(PWSTR.From("/" + file.DisplayName), out var name).ThrowOnError();
             writer.StartNewDocument(name, null!, null!, null!, null!).ThrowOnError();
 
             var streams = new List<Stream>();
@@ -81,7 +81,7 @@ namespace PdfFilePrint
                 // note we don't dispose streams here (close would fail)
                 var ustream = new DirectN.Extensions.Utilities.UnmanagedMemoryStream(stream);
                 streams.Add(stream);
-                xpsFactory.CreatePartUri(new Pwstr("/image" + i), out var imageUri).ThrowOnError();
+                xpsFactory.CreatePartUri(PWSTR.From("/image" + i), out var imageUri).ThrowOnError();
                 xpsFactory.CreateImageResource(ustream, XPS_IMAGE_TYPE.XPS_IMAGE_TYPE_PNG, imageUri, out var image).ThrowOnError();
 
                 // create a brush from image
@@ -109,8 +109,8 @@ namespace PdfFilePrint
                 rectPath.SetFillBrushLocal(imageBrush).ThrowOnError();
 
                 // create a page & add add rect to page
-                xpsFactory.CreatePartUri(new Pwstr("/page" + i), out var pageUri).ThrowOnError();
-                xpsFactory.CreatePage(size, new Pwstr("en"), pageUri, out var page).ThrowOnError(); // note: language is NOT optional
+                xpsFactory.CreatePartUri(PWSTR.From("/page" + i), out var pageUri).ThrowOnError();
+                xpsFactory.CreatePage(size, PWSTR.From("en"), pageUri, out var page).ThrowOnError(); // note: language is NOT optional
 
                 page.GetVisuals(out var visuals).ThrowOnError();
                 visuals.Append(rectPath).ThrowOnError();
