@@ -259,6 +259,7 @@ namespace CustomPrintDocument.Model
                     desiredJobPage = 1;
                 }
 
+                EnsureSurface(width, height);
                 IDXGISurface surface;
                 IPrintPreviewDxgiPackageTarget target;
                 lock (_workingLock)
@@ -284,9 +285,12 @@ namespace CustomPrintDocument.Model
                     var page = _pdfDocument.GetPage(desiredJobPage - 1);
                     var renderParams = new PDF_RENDER_PARAMS
                     {
+                        DestinationWidth = (uint)width,
+                        DestinationHeight = (uint)height,
                         BackgroundColor = new D2D_COLOR_F { a = 1, r = 1, g = 1, b = 1 }
                     };
                     _renderer.Object.RenderPageToSurface(page, _surface.Object, new Point(), renderParams);
+
                     target.DrawPage(desiredJobPage, surface, 96, 96);
                 }
                 finally
@@ -300,9 +304,7 @@ namespace CustomPrintDocument.Model
                 var options = MarshalInterface<PrintTaskOptions>.FromAbi(printTaskOptions);
                 var desc = options.GetPageDescription(currentJobPage);
                 EventProvider.Default.Log("PreviewPaginate " + currentJobPage + " ImageableRect: " + desc.ImageableRect.ToString() + " PageSize:" + desc.PageSize + " DPI:" + desc.DpiX);
-                // note we build our target surface using Dips not pixels
-                // this is somewhat incorrect but the ImageableRect is generally already bigger than the preview page
-                EnsureSurface((uint)desc.ImageableRect.Width, (uint)desc.ImageableRect.Height);
+                // do nothing
             }
 
             protected override void Dispose(bool disposing)
