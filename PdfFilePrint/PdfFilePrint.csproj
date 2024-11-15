@@ -10,8 +10,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\DirectNAot\DirectN.Extensions\DirectN.Extensions.csproj" />
-	  <ProjectReference Include="..\DirectNAot\DirectN\DirectN.csproj" />
+	  <Reference Include="DirectN">
+	    <HintPath>..\External\DirectN.dll</HintPath>
+	  </Reference>
+	  <Reference Include="DirectN.Extensions">
+	    <HintPath>..\External\DirectN.Extensions.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 	<ItemGroup>

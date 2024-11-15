@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="64"
+   height="64"
+   viewBox="0 0 64 64"
+   sodipodi:docname="printer-network.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="18.328125"
+     inkscape:cx="32.272805"
+     inkscape:cy="31.945439"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g1">
+    <path
+       style="fill:#000000;stroke:none;fill-opacity:1"
+       d="m 16.272805,1.945439 v 12 H 4.2728048 v 26 H 16.272805 v 8 h 15 v 4 h -9 v 4 H 2.2728048 v 2 H 22.272805 v 4 h 20 v -4 h 20 v -2 h -20 v -4 h -9 v -4 h 15 v -8 h 12 v -26 h -12 v -12 h -32"
+       id="path4" />
+    <path
+       style="fill:#ffffff;stroke:none;fill-opacity:1"
+       d="m 40.272805,53.945439 v 6 h -16 v -6 z"
+       id="path17" />
+    <path
+       style="fill:#ffffff;stroke:none;fill-opacity:1"
+       d="m 46.272805,31.945439 v 14 h -28 v -14 h 28"
+       id="path14" />
+    <path
+       style="fill:#ffffff;stroke:none;fill-opacity:1"
+       d="m 58.272805,15.945439 v 22 h -10 v -8 h -32 v 8 H 6.2728048 v -22 H 58.272805"
+       id="path12" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:none"
+       d="m 22.272805,33.945439 v 2 h 20 v -2 h -20"
+       id="path15" />
+    <path
+       style="fill:#3b52ed;stroke:none;fill-opacity:1"
+       d="m 10.272805,19.945439 v 6 h 6 v -6 h -6"
+       id="path13" />
+    <path
+       style="fill:#020303;fill-opacity:1;stroke:none"
+       d="m 22.272805,37.945439 v 2 h 20 v -2 h -20"
+       id="path16" />
+    <path
+       style="fill:#020303;fill-opacity:1;stroke:none"
+       d="m 22.236147,41.836317 v 2 h 20 v -2 h -20"
+       id="path16-8" />
+    <path
+       style="fill:#ffffff;stroke:none;fill-opacity:1;opacity:1;stroke-opacity:1"
+       d="m 46.272805,3.945439 v 10 h -28 v -10 h 28"
+       id="path11" />
+  </g>
+</svg>
