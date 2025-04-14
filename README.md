@@ -6,3 +6,5 @@ XPS and PDF file printing samples
 * **CustomPrintDocument**: a WinUI3 project (which is not AOT-friendly) that implements a custom WinRT [IPrintDocumentSource](https://learn.microsoft.com/en-us/uwp/api/windows.graphics.printing.iprintdocumentsource), usable without any XAML, GDI, WPF or Reach Framework. It supports printing XPS or PDF files (including preview). For PDF, it implements two printing mode: one based on **XPS** and another based on **Direct2D** which outputs higher quality PDF prints.
 
 ![image](https://github.com/smourier/XpsPrintSamples/assets/5328574/5536ca26-eb92-46f3-812b-55eed74a1244)
+
+PS: **CustomPrintDocumentAot** project is the same as CustomPrintDocument but AOT-compatible. Unfortunately it doesn't work due to a problem in C#/WinRT, still unfixed...
