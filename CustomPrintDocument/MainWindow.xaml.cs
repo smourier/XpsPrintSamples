@@ -138,7 +138,7 @@ namespace CustomPrintDocument
                 return;
 
             _printDocument.PackageStatusUpdated += OnPackageStatusUpdated;
-            await PrintManagerInterop.ShowPrintUIForWindowAsync(Win32Interop.GetWindowFromWindowId(AppWindow.Id));
+            var ret = await PrintManagerInterop.ShowPrintUIForWindowAsync(Win32Interop.GetWindowFromWindowId(AppWindow.Id));
         }
 
         private void OnCancelClicked(object sender, RoutedEventArgs e)

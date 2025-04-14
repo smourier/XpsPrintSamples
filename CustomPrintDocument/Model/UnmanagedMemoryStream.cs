@@ -45,7 +45,6 @@ namespace CustomPrintDocument.Model
 
         public UnmanagedMemoryStream(nint bytes, uint length)
         {
-            ArgumentNullException.ThrowIfNull(bytes);
             if (bytes == 0 && length > 0)
                 throw new ArgumentOutOfRangeException(nameof(length));
 

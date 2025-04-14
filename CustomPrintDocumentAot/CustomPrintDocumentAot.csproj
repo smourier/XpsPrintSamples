@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
 		<RootNamespace>CustomPrintDocument</RootNamespace>
-		<Platforms>x86;x64;ARM64</Platforms>
+		<Platforms>x64;ARM64</Platforms>
 		<RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
 		<PublishProfile>win-$(Platform).pubxml</PublishProfile>
 		<PublishAot>true</PublishAot>
 		<UseWinUI>true</UseWinUI>
 		<Nullable>enable</Nullable>
 		<IsAotCompatible>true</IsAotCompatible>
-		<WindowsSdkPackageVersion>10.0.26100.42</WindowsSdkPackageVersion>
+		<WindowsSdkPackageVersion>10.0.26100.57</WindowsSdkPackageVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableMsixTooling>true</EnableMsixTooling>
 		<ApplicationIcon>CustomPrintDocument.ico</ApplicationIcon>
@@ -33,9 +33,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.240923002" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250401001" />
 		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
-		<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.1.6" />
+		<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
 		<Manifest Include="$(ApplicationManifest)" />
 	</ItemGroup>
 
