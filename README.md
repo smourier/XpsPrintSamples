@@ -7,4 +7,3 @@ XPS and PDF file printing samples
 
 ![image](https://github.com/smourier/XpsPrintSamples/assets/5328574/5536ca26-eb92-46f3-812b-55eed74a1244)
 
-PS: **CustomPrintDocumentAot** project is the same as CustomPrintDocument but AOT-compatible. Unfortunately it doesn't work due to a problem in C#/WinRT, still unfixed...

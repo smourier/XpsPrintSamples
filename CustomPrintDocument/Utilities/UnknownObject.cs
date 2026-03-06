@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace CustomPrintDocument.Utilities
 {
-    public sealed class UnknownObject<T> : IDisposable
+    public sealed partial class UnknownObject<T> : IDisposable
     {
         private object _instance;
 

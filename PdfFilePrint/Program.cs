@@ -21,7 +21,7 @@ namespace PdfFilePrint
         {
             //await Print("sample.pdf", "Samsung C480W");
             //await Print("sample.pdf", "Microsoft XPS Document Writer");
-            await Print("sample.pdf", "Microsoft Print to PDF");
+            await Print("sample.pdf", "Microsoft Print to PDF"); // don't choose the same PDF for save!!
         }
 
         static async Task Print(string pdfFilePath, string printerName)
@@ -53,7 +53,7 @@ namespace PdfFilePrint
             //packageTarget.GetPackageTargetTypes(out var count, out var types).ThrowOnError();
 
             packageTarget.GetPackageTarget(Constants.ID_DOCUMENTPACKAGETARGET_MSXPS, typeof(IXpsDocumentPackageTarget).GUID, out var unk2).ThrowOnError();
-            using var xpsTarget = DirectN.Extensions.Com.ComObject.FromPointer<IXpsDocumentPackageTarget>(unk2)!;
+            using var xpsTarget = ComObject.FromPointer<IXpsDocumentPackageTarget>(unk2)!;
             xpsTarget.Object.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
 
             // build a writer

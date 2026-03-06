@@ -13,9 +13,9 @@ namespace XpsFilePrint
     {
         static void Main()
         {
-            PrintJob("sample.xps", "Samsung C480W");
+            //PrintJob("sample.xps", "Samsung C480W");
             //PrintJob("sample.xps", "Microsoft XPS Document Writer");
-            //PrintJob("sample.xps", "Microsoft Print to PDF");
+            PrintJob("sample.xps", "Microsoft Print to PDF");
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -46,7 +46,7 @@ namespace XpsFilePrint
             //packageTarget.GetPackageTargetTypes(out var count, out var types).ThrowOnError();
 
             packageTarget.GetPackageTarget(Constants.ID_DOCUMENTPACKAGETARGET_MSXPS, typeof(IXpsDocumentPackageTarget).GUID, out var unk2).ThrowOnError();
-            using var xpsTarget = DirectN.Extensions.Com.ComObject.FromPointer<IXpsDocumentPackageTarget>(unk2)!;
+            using var xpsTarget = ComObject.FromPointer<IXpsDocumentPackageTarget>(unk2)!;
             xpsTarget.Object.GetXpsOMFactory(out var xpsFactory).ThrowOnError();
 
             // load xps file

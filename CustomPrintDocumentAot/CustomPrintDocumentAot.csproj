@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
 		<RootNamespace>CustomPrintDocument</RootNamespace>
 		<Platforms>x64;ARM64</Platforms>
@@ -33,8 +33,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250401001" />
-		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005" />
+		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
 		<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
 		<Manifest Include="$(ApplicationManifest)" />
 	</ItemGroup>

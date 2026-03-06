@@ -17,7 +17,7 @@ using WinRT;
 
 namespace CustomPrintDocument.Model
 {
-    public sealed class XpsPrintDocument(string filePath) : BasePrintDocument(filePath)
+    public sealed partial class XpsPrintDocument(string filePath) : BasePrintDocument(filePath)
     {
         private XPSRAS_RENDERING_MODE _previewTextRenderingMode = XPSRAS_RENDERING_MODE.XPSRAS_RENDERING_MODE_ANTIALIASED;
         private XPSRAS_RENDERING_MODE _previewNonTextRenderingMode = XPSRAS_RENDERING_MODE.XPSRAS_RENDERING_MODE_ANTIALIASED;
@@ -73,7 +73,7 @@ namespace CustomPrintDocument.Model
             writer.Close();
         }
 
-        private sealed class XpsPrintTarget : PrintTarget
+        private sealed partial class XpsPrintTarget : PrintTarget
         {
             private UnknownObject<ID3D11Device> _d3D11Device;
             private UnknownObject<ID2D1Device> _d2D1Device;
@@ -85,7 +85,7 @@ namespace CustomPrintDocument.Model
             private float? _surfaceWidth;
             private float? _surfaceHeight;
             private readonly XpsPrintDocument _printDocument;
-            private readonly object _workingLock = new();
+            private readonly Lock _workingLock = new();
             private uint? _pageBeingWorkedOn;
             private bool _stopped;
 
@@ -137,7 +137,7 @@ namespace CustomPrintDocument.Model
                 _deviceContext = new UnknownObject<ID2D1DeviceContext>(deviceContext);
                 _surface = _d3D11Device.Object.CreateSurface((uint)width, (uint)height);
 
-                var props = new D2D1_BITMAP_PROPERTIES1
+                var props = new D2D1_BITMAP_PROPERTIES1_unmanaged
                 {
                     pixelFormat = new D2D1_PIXEL_FORMAT { format = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM, alphaMode = D2D1_ALPHA_MODE.D2D1_ALPHA_MODE_PREMULTIPLIED },
                     bitmapOptions = D2D1_BITMAP_OPTIONS.D2D1_BITMAP_OPTIONS_TARGET,
@@ -185,7 +185,7 @@ namespace CustomPrintDocument.Model
 
                     unsafe
                     {
-                        _deviceContext.Object.CreateBitmapFromWicBitmap(wicBitmap, null, out var bitmap);
+                        _deviceContext.Object.CreateBitmapFromWicBitmap(wicBitmap, (D2D1_BITMAP_PROPERTIES1_unmanaged*)null, out var bitmap);
                         _pageBitmap = new UnknownObject<ID2D1Bitmap>(bitmap);
                         Marshal.ReleaseComObject(wicBitmap);
                         EventProvider.Default.Log("loaded bitmap size: " + size.width + " x " + size.height);

@@ -170,7 +170,7 @@ public sealed partial class MainWindow : Microsoft.UI.Xaml.Window
 
         public void Wait()
         {
-            _evt.WaitOne();
+            _evt?.WaitOne();
         }
 
         public void Dispose()

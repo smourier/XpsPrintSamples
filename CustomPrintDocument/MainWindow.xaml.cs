@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using CustomPrintDocument.Model;
@@ -28,7 +27,7 @@ namespace CustomPrintDocument
             InitializeComponent();
 
             // set app icon
-            var exeHandle = PInvoke.GetModuleHandle(Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName));
+            var exeHandle = PInvoke.GetModuleHandle(Path.GetFileName(Environment.ProcessPath));
             var appIcon = PInvoke.LoadImage(new HINSTANCE(exeHandle.DangerousGetHandle()), PInvoke.IDI_APPLICATION, GDI_IMAGE_TYPE.IMAGE_ICON, 16, 16, 0);
             AppWindow.SetIcon(Win32Interop.GetIconIdFromIcon(appIcon));
 
