@@ -1,5 +1,5 @@
 # XpsPrintSamples
-XPS and PDF file printing samples **without Winforms, WPF or XAML**
+XPS and PDF file modern .NET printing samples with preview **without Winforms, WPF or XAML**
 
 * **XpsFilePrint**: a project (AOT friendly) that demonstrates how to print an XPS file (to any printer, including XPS, PDF, ...)
 * **PdfFilePrint**: a project (AOT friendly) that demonstrates how to print a PDF file (to any printer, including XPS, PDF, ...)
