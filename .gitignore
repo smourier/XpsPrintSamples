@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /External/c.bat
+/c.bat
