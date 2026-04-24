@@ -25,7 +25,7 @@ using WinRT;
 
 namespace CustomPrintDocument.Model
 {
-    public sealed class PdfPrintDocument(string filePath) : BasePrintDocument(filePath)
+    public sealed partial class PdfPrintDocument(string filePath) : BasePrintDocument(filePath)
     {
         private PdfPrintingMode _printingMode = PdfPrintingMode.Direct2D;
 
@@ -193,7 +193,7 @@ namespace CustomPrintDocument.Model
             }
 
             // unsafes in async
-            static unsafe IXpsOMPage CreatePage(IXpsOMObjectFactory factory, XPS_SIZE size, IOpcPartUri pageUri) => factory.CreatePage(size, "en", pageUri); // note: language is NOT optional
+            static IXpsOMPage CreatePage(IXpsOMObjectFactory factory, XPS_SIZE size, IOpcPartUri pageUri) => factory.CreatePage(size, "en", pageUri); // note: language is NOT optional
             static unsafe IXpsDocumentPackageTarget GetXpsDocumentPackageTarget(IPrintDocumentPackageTarget docPackageTarget)
             {
                 var IXpsDocumentPackageTargetGuid = typeof(IXpsDocumentPackageTarget).GUID;
@@ -203,7 +203,7 @@ namespace CustomPrintDocument.Model
             }
         }
 
-        private sealed class PdfPrintTarget : PrintTarget
+        private sealed partial class PdfPrintTarget : PrintTarget
         {
             private UnknownObject<ID3D11Device> _d3D11Device;
             private UnknownObject<IDXGISurface> _surface;
@@ -212,7 +212,7 @@ namespace CustomPrintDocument.Model
             private float? _surfaceWidth;
             private float? _surfaceHeight;
             private readonly PdfPrintDocument _printDocument;
-            private readonly object _workingLock = new();
+            private readonly Lock _workingLock = new();
             private uint? _pageBeingWorkedOn;
             private bool _stopped;
 

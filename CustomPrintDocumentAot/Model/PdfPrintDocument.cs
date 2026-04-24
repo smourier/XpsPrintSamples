@@ -205,7 +205,7 @@ public sealed partial class PdfPrintDocument(string filePath) : BasePrintDocumen
         private float? _surfaceWidth;
         private float? _surfaceHeight;
         private readonly PdfPrintDocument _printDocument;
-        private readonly object _workingLock = new();
+        private readonly Lock _workingLock = new();
         private int? _pageBeingWorkedOn;
         private bool _stopped;
 
@@ -238,14 +238,14 @@ public sealed partial class PdfPrintDocument(string filePath) : BasePrintDocumen
 
         private void EnsureSurface(float width, float height)
         {
-            if (_d3D11Device == null || _surface == null)
+            if (_d3D11Device == null)
                 return;
 
             if (width == _surfaceWidth && height == _surfaceHeight)
                 return;
 
             EnsureDocumentAsync().Wait();
-            _surface.Dispose();
+            _surface?.Dispose();
 
             var texture = new D3D11_TEXTURE2D_DESC
             {
@@ -264,9 +264,6 @@ public sealed partial class PdfPrintDocument(string filePath) : BasePrintDocumen
 
         protected internal override void MakePreviewPage(int desiredJobPage, float width, float height)
         {
-            if (_pdfDocument == null)
-                return;
-
             PrintExtensions.Log("MakePreviewPage " + desiredJobPage + " " + width + " x " + height);
             if (desiredJobPage == unchecked((int)Constants.JOB_PAGE_APPLICATION_DEFINED))
             {
@@ -274,6 +271,9 @@ public sealed partial class PdfPrintDocument(string filePath) : BasePrintDocumen
             }
 
             EnsureSurface(width, height);
+            if (_pdfDocument == null)
+                return;
+
             IDXGISurface? surface;
             IPrintPreviewDxgiPackageTarget? target;
             lock (_workingLock)

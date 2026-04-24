@@ -3,14 +3,11 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using DirectN;
 using DirectN.Extensions.Com;
-using Windows.Graphics.Printing;
 
 namespace CustomPrintDocument.Model;
 
-// note: we can't use DirectN AOT because there are some issue when authoring COM classes in .NET between ComWrappers, AOT and C#/WinRT
-// and we can't use GeneratedComClass either...
 [GeneratedComClass]
-public abstract partial class BasePrintDocument : IPrintDocumentSource, IInspectable, IPrintDocumentPageSource, IPrintPreviewPageCollection, IDisposable
+public abstract partial class BasePrintDocument : Interop.IPrintDocumentSource, IPrintDocumentPageSource, IPrintPreviewPageCollection, IDisposable
 {
     public event EventHandler<PackageStatusUpdatedEventArgs>? PackageStatusUpdated;
     private ComObject<IPrintDocumentPackageTarget>? _docPackageTarget;
@@ -27,9 +24,9 @@ public abstract partial class BasePrintDocument : IPrintDocumentSource, IInspect
 
     public virtual void Cancel() => _docPackageTarget?.Object?.Cancel();
 
-    HRESULT IInspectable.GetTrustLevel(out TrustLevel trustLevel) { trustLevel = TrustLevel.BaseTrust; return Constants.S_OK; }
-    HRESULT IInspectable.GetRuntimeClassName(out HSTRING className) { className = default; return Constants.S_OK; }
-    HRESULT IInspectable.GetIids(out uint iidCount, out nint iids) => throw new NotImplementedException();
+    HRESULT Interop.IInspectable.GetTrustLevel(out TrustLevel trustLevel) { trustLevel = TrustLevel.BaseTrust; return Constants.S_OK; }
+    HRESULT Interop.IInspectable.GetRuntimeClassName(out HSTRING className) { className = default; return Constants.S_OK; }
+    HRESULT Interop.IInspectable.GetIids(out uint iidCount, out nint iids) => throw new NotImplementedException();
 
     HRESULT IPrintDocumentPageSource.MakeDocument(nint printTaskOptions, IPrintDocumentPackageTarget docPackageTarget)
     {

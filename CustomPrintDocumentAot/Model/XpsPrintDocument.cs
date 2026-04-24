@@ -122,14 +122,14 @@ public sealed partial class XpsPrintDocument(string filePath) : BasePrintDocumen
 
         private unsafe void EnsureSurface(float width, float height)
         {
-            if (_d2D1Device == null || _d3D11Device == null || _surface == null)
+            if (_d2D1Device == null || _d3D11Device == null)
                 return;
 
             if (width == _surfaceWidth && height == _surfaceHeight)
                 return;
 
             _deviceContext?.Dispose();
-            _surface.Dispose();
+            _surface?.Dispose();
 
             // create a DC with a surface/texture as target
             _d2D1Device.Object.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var deviceContext);

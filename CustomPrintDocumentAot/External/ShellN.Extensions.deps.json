@@ -1,0 +1,83 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ShellN.Extensions/1.0.0": {
+        "dependencies": {
+          "ShellN": "1.0.0",
+          "System.IO.Hashing": "10.0.7",
+          "DirectN": "1.5.3.0",
+          "DirectN.Extensions": "1.5.3.0"
+        },
+        "runtime": {
+          "ShellN.Extensions.dll": {}
+        }
+      },
+      "System.IO.Hashing/10.0.7": {
+        "runtime": {
+          "lib/net10.0/System.IO.Hashing.dll": {
+            "assemblyVersion": "10.0.0.7",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "ShellN/1.0.0": {
+        "runtime": {
+          "ShellN.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.105"
+          }
+        }
+      },
+      "DirectN/1.5.3.0": {
+        "runtime": {
+          "DirectN.dll": {
+            "assemblyVersion": "1.5.3.0",
+            "fileVersion": "1.5.3.0"
+          }
+        }
+      },
+      "DirectN.Extensions/1.5.3.0": {
+        "runtime": {
+          "DirectN.Extensions.dll": {
+            "assemblyVersion": "1.5.3.0",
+            "fileVersion": "1.5.3.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ShellN.Extensions/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "System.IO.Hashing/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6hsjdSr4VOXSOnhALkYplHpAxnTG1J33YN42IB6nH2fEg4QnJqrZ4Ft+qn7mkrKAOYC8pCSFYwVWw6rQbmwgLQ==",
+      "path": "system.io.hashing/10.0.7",
+      "hashPath": "system.io.hashing.10.0.7.nupkg.sha512"
+    },
+    "ShellN/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DirectN/1.5.3.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DirectN.Extensions/1.5.3.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

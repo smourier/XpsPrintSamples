@@ -9,7 +9,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<IsAotCompatible>true</IsAotCompatible>
 		<InvariantGlobalization>true</InvariantGlobalization>
-		<Platforms>AnyCPU</Platforms>
+		<Platforms>ARM64;x64</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>
