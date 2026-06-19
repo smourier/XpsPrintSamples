@@ -69,8 +69,8 @@ namespace CustomPrintDocument.Utilities
 
         public static UnknownObject<IWICImagingFactory> CreateWICImagingFactory()
         {
-            PInvoke.CoCreateInstance(PInvoke.CLSID_WICImagingFactory, null, CLSCTX.CLSCTX_ALL, typeof(IWICImagingFactory).GUID, out var obj).ThrowOnFailure();
-            return new UnknownObject<IWICImagingFactory>((IWICImagingFactory)obj);
+            PInvoke.CoCreateInstance<IWICImagingFactory>(PInvoke.CLSID_WICImagingFactory, null, CLSCTX.CLSCTX_ALL, out var obj).ThrowOnFailure();
+            return new UnknownObject<IWICImagingFactory>(obj);
         }
 
         public unsafe static PCWSTR ToPCWSTR(this string text)

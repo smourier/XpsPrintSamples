@@ -41,7 +41,7 @@ namespace CustomPrintDocument.Model
         // overridable methods
         protected virtual IPrintPreviewPageCollection GetPreviewPageCollection(IPrintDocumentPackageTarget docPackageTarget)
         {
-            docPackageTarget.GetPackageTarget(typeof(IPrintPreviewDxgiPackageTarget).GUID, typeof(IPrintPreviewDxgiPackageTarget).GUID, out var obj);
+            docPackageTarget.GetPackageTarget<IPrintPreviewDxgiPackageTarget>(typeof(IPrintPreviewDxgiPackageTarget).GUID, out var obj);
             if (obj is IPrintPreviewDxgiPackageTarget target)
             {
                 PrintTarget = GetPrintTarget(target);

@@ -169,8 +169,7 @@ namespace CustomPrintDocument.Model
                 var page = pageRef.GetPage();
 
                 // build rasterizer for XPS
-                PInvoke.CoCreateInstance(PInvoke.CLSID_XPSRASTERIZER_FACTORY, null, CLSCTX.CLSCTX_ALL, typeof(IXpsRasterizationFactory).GUID, out var obj).ThrowOnFailure();
-                var rasterizationFactory = (IXpsRasterizationFactory)obj;
+                PInvoke.CoCreateInstance<IXpsRasterizationFactory>(PInvoke.CLSID_XPSRASTERIZER_FACTORY, null, CLSCTX.CLSCTX_ALL, out var rasterizationFactory).ThrowOnFailure();
                 rasterizationFactory.CreateRasterizer(page, 96, _printDocument.PreviewNonTextRenderingMode, _printDocument.PreviewTextRenderingMode, out var rasterizer);
                 Marshal.ReleaseComObject(rasterizationFactory);
                 try
